@@ -1,0 +1,25 @@
+---
+# handlers file for sweet_home_3d
+- name: Remove temporary Sweet Home 3D directory
+  become: yes
+  file:
+    name: "{{ sweet_home_3d_temp_dir.path }}"
+    state: absent
+
+- name: Remove temporary Sweet Home 3D desktop directory
+  become: yes
+  file:
+    name: "{{ sweet_home_3d_desktop_tmp_directory.path }}"
+    state: absent
+
+- name: Remove desktop-file-utils
+  become: yes
+  package:
+    name: desktop-file-utils
+    state: absent
+
+- name: Remove rsync
+  become: yes
+  package:
+    name: rsync
+    state: absent

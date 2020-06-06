@@ -1,0 +1,9 @@
+---
+# vars file for sweet_home_3d
+top_src_name: "{{ unarchived_parents | first }}"
+top_dest_name: "{{ (sweet_home_3d_top_dest_name_override | length > 0) | ternary(sweet_home_3d_top_dest_name_override, top_src_name) }}"
+
+tmp_desktop_file_full: "{{ sweet_home_3d_desktop_tmp_directory.path }}/{{ top_dest_name }}.desktop"
+desktop_file_full: "{{ sweet_home_3d_desktop_parent_dir }}/{{ top_dest_name }}.desktop"
+
+install_dest_full: "{{ sweet_home_3d_install_parent_dir }}/{{ top_dest_name }}"

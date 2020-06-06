@@ -1,0 +1,26 @@
+---
+# defaults file for sweet_home_3d
+
+# Path to an release archive of Sweet Home 3D on a control host or URL to
+# download the archive from.
+sweet_home_3d_archive_src: https://sourceforge.net/projects/sweethome3d/files/latest/download
+
+# By default installs the program. Set to "absent" to uninstall.
+sweet_home_3d_state: present
+
+# Base name of installation directory and name part of a desktop file. If set
+# to empty, top level of release archive is used instead.
+sweet_home_3d_top_dest_name_override: SweetHome3D
+
+# Parent directory in which program will be installed. See also
+# `sweet_home_3d_top_dest_name_override`.
+sweet_home_3d_install_parent_dir: /opt
+
+# Parent directory in which desktop file will be installed. See also
+# `sweet_home_3d_top_dest_name_override`.
+sweet_home_3d_desktop_parent_dir: /usr/local/share/applications
+
+# If set to "yes", contents of installation directory and desktop file are not
+# compared against contents of `sweet_home_3d_archive_src` when uninstall,
+# upgrade or downgrade.
+sweet_home_3d_force_remove: no

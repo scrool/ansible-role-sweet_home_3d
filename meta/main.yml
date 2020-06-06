@@ -1,0 +1,20 @@
+galaxy_info:
+  author: Pavol Babinčák
+  role_name: sweet_home_3d
+  description: >
+    Installs or uninstalls Sweet Home 3D - a free interior design application
+    to draw floor plans, arrange furniture on it and visit the results in 3D.
+  company: none
+  license: MIT
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: Fedora
+      versions:
+        - 31
+
+  galaxy_tags:
+    - desktop
+    - sweethome3d
+
+dependencies: []

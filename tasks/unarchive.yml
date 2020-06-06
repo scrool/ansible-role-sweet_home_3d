@@ -1,0 +1,34 @@
+---
+# unarchive tasks file for sweet_home_3d
+- name: Create a temporary directory for unarchive
+  tempfile:
+    state: directory
+  register: sweet_home_3d_temp_dir
+  notify: Remove temporary Sweet Home 3D directory
+  when: not ansible_check_mode
+
+- name: Fail if archive src is not set
+  fail:
+    msg: To unarchive sweet_home_3d_archive_src must be set
+  when: sweet_home_3d_archive_src | length == 0
+
+- name: Unarchive the source archive
+  unarchive:
+    src: "{{ sweet_home_3d_archive_src }}"
+    dest: "{{ sweet_home_3d_temp_dir.path }}"
+    list_files: yes
+    remote_src: "{{ '://' in sweet_home_3d_archive_src }}"
+  register: sweet_home_3d_unarchived_content
+  when: not ansible_check_mode
+
+- name: List unarchived parent dirs
+  set_fact:
+    unarchived_parents: "{{ sweet_home_3d_unarchived_content.files | map('reverse') | map('basename') | map('reverse') | list | unique }}"
+  when: not ansible_check_mode
+
+- name: Fail if there is not exactly one parent
+  fail:
+    msg: Archive does not contain exactly one top level directory
+  when:
+    - not ansible_check_mode
+    - unarchived_parents | length != 1

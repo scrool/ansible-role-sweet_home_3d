@@ -1,0 +1,22 @@
+---
+# uninstall tasks file for sweet_home_3d
+- name: Fail if override is not set and force remove is set
+  fail:
+    msg: If force remove is set, sweet_home_3d_top_dest_name_override must be defined as well
+  when: sweet_home_3d_top_dest_name_override | length == 0
+
+- name: Set top_dest_name from override only
+  set_fact:
+    top_dest_name: "{{ sweet_home_3d_top_dest_name_override }}"
+
+- name: Remove installed content
+  become: yes
+  file:
+    name: "{{ install_dest_full }}"
+    state: absent
+
+- name: Remove installed desktop file
+  become: yes
+  file:
+    name: "{{ desktop_file_full }}"
+    state: absent

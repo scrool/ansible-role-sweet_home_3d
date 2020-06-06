@@ -1,0 +1,60 @@
+---
+# install tasks file for sweet_home_3d
+- name: Unarchive
+  become: yes
+  block:
+    - name: Include unarchive tasks
+      include_tasks: unarchive.yml
+
+- name: Install unarchived content
+  become: yes
+  block:
+    - name: Ensure rsync is installed
+      package:
+        name:
+          - rsync
+        state: present
+      notify: Remove rsync
+
+    - name: Compare unarchived content with installed
+      synchronize:
+        src: "{{ sweet_home_3d_temp_dir.path }}/{{ top_src_name }}/"
+        dest: "{{ install_dest_full }}/"
+        checksum: yes
+        times: no
+        delete: "{{ sweet_home_3d_force_remove | bool }}"
+      delegate_to: "{{ inventory_hostname }}"
+      when: not ansible_check_mode
+
+- name: Create an desktop entry
+  become: yes
+  block:
+    - name: Include desktop entry tasks
+      include_tasks: desktop_entry.yml
+  when: not ansible_check_mode
+
+- name: Install the desktop entry
+  become: yes
+  block:
+    - name: Check if desktop file install is needed
+      copy:
+        src: "{{ tmp_desktop_file_full }}"
+        dest: "{{ desktop_file_full }}"
+        remote_src: yes
+      check_mode: yes
+      register: sweet_home_3d_desktop_check
+
+    - name: Install package desktop-file-utils that provides desktop-file-install
+      package:
+        name:
+          - desktop-file-utils
+        state: present
+      notify: Remove desktop-file-utils
+
+    - name: Install desktop entry file
+      command: >
+        desktop-file-install
+        "--dir={{ sweet_home_3d_desktop_parent_dir }}"
+        "{{ tmp_desktop_file_full }}"
+      when: sweet_home_3d_desktop_check.changed
+  when: not ansible_check_mode

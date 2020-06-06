@@ -1,0 +1,22 @@
+---
+# main tasks file for sweet_home_3d
+- name: Fail if desired state is invalid
+  fail:
+    msg: State variable must be either "present" or "absent"
+  when: sweet_home_3d_state not in ["present", "absent"]
+
+- name: Uninstall tasks of Sweet Home 3D
+  include_tasks: uninstall.yml
+  when:
+    - sweet_home_3d_state == "absent"
+    - sweet_home_3d_force_remove | bool
+
+- name: Install tasks of Sweet Home 3D
+  include_tasks: install.yml
+  when: sweet_home_3d_state == "present"
+
+- name: Safe uninstall tasks of Sweet Home 3D
+  include_tasks: safe_uninstall.yml
+  when:
+    - sweet_home_3d_state == "absent"
+    - not (sweet_home_3d_force_remove | bool)

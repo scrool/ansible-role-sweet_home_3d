@@ -1,0 +1,4 @@
+# This is the options file for mdl and related to the style file ./mdlrc.style
+# See
+# https://github.com/markdownlint/markdownlint/blob/master/docs/configuration.md
+style File.expand_path('.mdlrc.style', __dir__)

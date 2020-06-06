@@ -1,0 +1,110 @@
+---
+# safe uninstall tasks file for sweet_home_3d
+- name: Set fact of use override name
+  set_fact:
+    sh3d_use_override_name: "{{ sweet_home_3d_top_dest_name_override | length > 0 }}"
+
+- name: Check if install directory exists if override is used
+  become: yes
+  block:
+    - name: Set top_dest_name from override only
+      set_fact:
+        top_dest_name: "{{ sweet_home_3d_top_dest_name_override }}"
+
+    - name: Stat of install directory
+      stat:
+        path: "{{ install_dest_full }}"
+      register: sh3d_install_dir_overriden_name_stat
+  when: sh3d_use_override_name
+
+- name: Unarchive if needed
+  become: yes
+  block:
+    - name: Include unarchive tasks
+      include_tasks: unarchive.yml
+  when: >
+    not ansible_check_mode
+    and (not sh3d_use_override_name or (sh3d_use_override_name and sh3d_install_dir_overriden_name_stat.stat.exists))
+
+- name: Check if install directory exists with top level directory from the archive
+  become: yes
+  block:
+    - name: Stat of install directory
+      stat:
+        path: "{{ install_dest_full }}"
+      register: sh3d_install_dir_archive_name_stat
+  when: not sh3d_use_override_name
+
+- name: Safe uninstall
+  become: yes
+  block:
+    - name: Install rsync for synchronize module
+      package:
+        name:
+          - rsync
+        state: present
+      notify: Remove rsync
+
+    - name: Compare unarchived content with installed
+      synchronize:
+        src: "{{ sweet_home_3d_temp_dir.path }}/{{ top_src_name }}/"
+        dest: "{{ install_dest_full }}/"
+        checksum: yes
+        times: no
+        delete: "{{ sweet_home_3d_force_remove | bool }}"
+      check_mode: yes
+      delegate_to: "{{ inventory_hostname }}"
+      register: rsync_result
+      when: not ansible_check_mode
+
+    - name: Fail if the installed content doesn't match with the unarchived
+      fail:
+        msg: Installed content doesn't match with archive content
+      when:
+        - not ansible_check_mode
+        - rsync_result.changed
+
+    - name: Remove installed content
+      file:
+        name: "{{ install_dest_full }}"
+        state: absent
+  when: >
+    (sh3d_use_override_name and sh3d_install_dir_overriden_name_stat.stat.exists)
+    or (not sh3d_use_override_name and sh3d_install_dir_archive_name_stat.stat.exists)
+
+- name: Check if a desktop entry exists
+  become: yes
+  stat:
+    path: "{{ desktop_file_full }}"
+  register: sh3d_desktop_entry_stat
+
+- name: Create the desktop entry
+  become: yes
+  block:
+    - name: Include desktop entry tasks
+      include_tasks: desktop_entry.yml
+  when:
+    - sh3d_desktop_entry_stat.stat.exists
+    - not ansible_check_mode
+
+- name: Safe uninstall of the desktop entry
+  become: yes
+  block:
+    - name: Check desktop file is same
+      copy:
+        src: "{{ tmp_desktop_file_full }}"
+        dest: "{{ desktop_file_full }}"
+        remote_src: yes
+      check_mode: yes
+      register: sweet_home_3d_desktop_check
+
+    - name: Fail if content of installed desktop entry doesn't match with created one
+      fail:
+        msg: Installed desktop file does not match created desktop file
+      when: sweet_home_3d_desktop_check.changed
+
+    - name: Remove installed desktop file
+      file:
+        name: "{{ desktop_file_full }}"
+        state: absent
+  when: not ansible_check_mode and sh3d_desktop_entry_stat.stat.exists
